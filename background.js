@@ -62,14 +62,18 @@ Respond with exactly this JSON structure:
 }
 
 async function handleGetHint(apiKey, { title, content, constraints, code, hintLevel, pattern }) {
-  const system = `You are a Socratic programming mentor. Never give the full solution unless hint level 5. Guide students to discover solutions themselves through progressive hints. Be concise — each hint is 2-4 sentences max.`;
+  const system = `You are a Socratic programming mentor. Never give the full solution unless hint level 5. Guide students to discover solutions themselves through progressive hints.`;
 
   const hintInstructions = {
-    1: "Pattern recognition only. Ask a guiding question about what data structure or technique applies. Don't mention specific algorithms.",
-    2: "Name the data structure or algorithm pattern. Explain briefly WHY it fits this problem. Still no implementation details.",
-    3: "Give an optimization clue. Hint at the key operation that makes the solution efficient (e.g., 'think about what you need O(1) lookup for').",
-    4: "Give pseudocode outline — 3-5 steps showing the algorithm structure without actual code syntax.",
-    5: "Provide the full implementation with brief inline comments explaining each key step.",
+    1: "Pattern recognition only. Ask a guiding question about what data structure or technique applies. Do NOT name the algorithm. 2-3 sentences.",
+    2: "Name the data structure or algorithm pattern and explain in 2-3 sentences WHY it fits this problem. No implementation details.",
+    3: "Give a concise optimization clue in 2-3 sentences. Hint at the key operation that makes the solution efficient.",
+    4: `Give a numbered pseudocode outline of 4-6 steps. Format it as a plain numbered list like:
+1. Initialize ...
+2. Iterate ...
+3. Check ...
+No actual code syntax — use plain English descriptions of each step.`,
+    5: `Provide the complete working solution with brief inline comments. Use a fenced code block with the correct language identifier.`,
   };
 
   const user = `Problem: ${title}
@@ -82,16 +86,25 @@ ${code || "(no code written yet)"}
 
 Hint level ${hintLevel}/5: ${hintInstructions[hintLevel]}
 
-Respond with exactly this JSON:
-\`\`\`json
-{
-  "hint": "your hint text here",
-  "followUpQuestion": "a question to prompt their thinking (only for levels 1-3, empty string otherwise)"
-}
-\`\`\``;
+Respond using ONLY these two XML tags and nothing else outside them:
+<hint>
+your hint content here (can include newlines, code blocks, numbered lists freely)
+</hint>
+<followup>
+a short question to prompt thinking (levels 1-3 only, leave empty for levels 4-5)
+</followup>`;
 
-  const text = await callClaude(apiKey, system, user, 600);
-  return parseJSON(text);
+  const text = await callClaude(apiKey, system, user, 1500);
+  return parseHintResponse(text);
+}
+
+function parseHintResponse(text) {
+  const hintMatch = text.match(/<hint>([\s\S]*?)<\/hint>/);
+  const followupMatch = text.match(/<followup>([\s\S]*?)<\/followup>/);
+  return {
+    hint: hintMatch ? hintMatch[1].trim() : text.trim(),
+    followUpQuestion: followupMatch ? followupMatch[1].trim() : "",
+  };
 }
 
 async function handleAnalyzeComplexity(apiKey, { code, language, problemTitle }) {

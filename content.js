@@ -238,6 +238,22 @@
     }
   }
 
+  function renderHintText(text) {
+    // Render fenced code blocks as <pre><code>
+    let html = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+      return `<pre class="lc-code-block"><code>${escapeHtml(code.trim())}</code></pre>`;
+    });
+    // Render numbered list lines (1. 2. 3.) preserving structure
+    html = html.replace(/^(\d+\.\s.+)$/gm, "<div class='lc-pseudo-step'>$1</div>");
+    // Newlines to <br> outside of pre blocks
+    html = html.replace(/\n(?!<)/g, "<br>");
+    return html;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   function updateHintUI() {
     const box = $("lc-hint-box");
     const btn = $("lc-next-hint-btn");
@@ -252,7 +268,7 @@
       const levelNames = ["", "Pattern Recognition", "Data Structure", "Optimization Clue", "Pseudocode", "Full Implementation"];
       box.innerHTML = `
         <div class="lc-hint-level-label">H${level}: ${levelNames[level]}</div>
-        <div>${cached.hint}</div>
+        <div>${renderHintText(cached.hint)}</div>
         ${cached.followUpQuestion ? `<div id="lc-hint-followup">💭 ${cached.followUpQuestion}</div>` : ""}
       `;
     } else {
