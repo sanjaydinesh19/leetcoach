@@ -173,42 +173,6 @@ Return at most 3 errors and 3 warnings. If code looks correct, return empty arra
   return parseJSON(text);
 }
 
-async function handleGenerateVisualization(apiKey, { pattern, problemTitle }) {
-  const system = `You are an algorithm visualization expert. Generate step-by-step visualization data for animated algorithm demonstrations. Respond ONLY with valid JSON.`;
-
-  const user = `Generate visualization steps for the "${pattern}" algorithm pattern, in the context of "${problemTitle}".
-
-Create a small concrete example (n=5 to n=8 elements) with step-by-step state changes.
-
-Respond with exactly this JSON:
-\`\`\`json
-{
-  "type": "array | tree | graph | dp_table | stack",
-  "title": "visualization title",
-  "description": "one-line explanation of what the animation shows",
-  "initialState": {
-    "elements": [list of values for the example],
-    "labels": ["optional labels for each element"],
-    "extra": {}
-  },
-  "steps": [
-    {
-      "action": "brief description of this step",
-      "highlights": [list of indices being highlighted],
-      "pointers": {"left": 0, "right": 4},
-      "values": [current state of elements if changed],
-      "annotation": "note shown on this step"
-    }
-  ]
-}
-\`\`\`
-
-Generate 6-10 meaningful steps showing the algorithm in action.`;
-
-  const text = await callClaude(apiKey, system, user, 1200);
-  return parseJSON(text);
-}
-
 // ── Message Router ───────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -226,7 +190,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       case "GET_HINT":           handler = handleGetHint(apiKey, payload); break;
       case "ANALYZE_COMPLEXITY": handler = handleAnalyzeComplexity(apiKey, payload); break;
       case "DETECT_ERRORS":      handler = handleDetectErrors(apiKey, payload); break;
-      case "GET_VISUALIZATION":  handler = handleGenerateVisualization(apiKey, payload); break;
       default:
         sendResponse({ error: `Unknown message type: ${type}` });
         return;
