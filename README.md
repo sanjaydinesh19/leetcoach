@@ -33,12 +33,16 @@ As you type, it predicts:
 - TLE risk (`"O(n²) may fail for n=10⁵"`)
 - Specific bottlenecks (nested loops, redundant lookups)
 
-### Semantic Error Detection
-Not syntax errors — actual reasoning mistakes:
-- Wrong algorithm choice for the constraints
-- Hashmap key collisions
-- Off-by-one errors in pointer logic
-- Edge cases your code doesn't handle
+### Three-Section Code Analysis
+Click **Analyze My Code** for structured, accurate feedback:
+
+| Section | Colour | What it shows |
+|---------|--------|---------------|
+| What you got right | Green | Correct algorithm choices, good data structures, tricky cases handled |
+| Edge cases to consider | Yellow | Inputs that may not be handled (empty array, overflow, duplicates) |
+| Critical errors | Red | Real logic bugs — with the exact line and a one-line fix |
+
+Every reported bug is grounded in a direct quote from your code. The reviewer is required to trace variable definitions in execution order before making any claim, eliminating false positives like "variable X is undefined" when X is clearly defined earlier.
 
 ### Struggle Detection
 The extension tracks your session and adapts:
