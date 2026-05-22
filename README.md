@@ -1,4 +1,4 @@
-# 🧠 LeetCoach
+# LeetCoach
 
 An AI-powered Chrome extension that coaches you through LeetCode problems — progressively, not by handing you the answer.
 
@@ -8,15 +8,10 @@ An AI-powered Chrome extension that coaches you through LeetCode problems — pr
 
 ---
 
-## Why LeetCoach?
-
-Most AI tools for LeetCode either give you the full solution immediately (useless for learning) or just syntax-check your code. LeetCoach is different — it acts as a Socratic mentor, guiding you to the answer through progressive hints, pattern recognition, and real-time analysis.
-
----
 
 ## Features
 
-### 💡 5-Level Progressive Hints
+### 5-Level Progressive Hints
 Hints unlock one at a time so you're always challenged before you get help.
 
 | Level | What you get |
@@ -27,33 +22,33 @@ Hints unlock one at a time so you're always challenged before you get help.
 | H4 | Pseudocode — algorithm outline without real syntax |
 | H5 | Full implementation — commented code |
 
-### ⚡ Algorithm Pattern Recognition
+### Algorithm Pattern Recognition
 The moment you open a problem, LeetCoach identifies the core pattern:
 - Sliding Window, Two Pointers, Binary Search
 - Dynamic Programming, Greedy, Backtracking
 - BFS/DFS, Monotonic Stack, Union-Find, Heap, Trie
 
-### 📊 Live Complexity Analysis
+### Live Complexity Analysis
 As you type, it predicts:
 - Time and space complexity
 - TLE risk (`"Your O(n²) solution may fail for n=10⁵"`)
 - Specific bottlenecks (nested loops, redundant lookups)
 
-### 🐛 Semantic Error Detection
+### Semantic Error Detection
 Not syntax errors — actual reasoning mistakes:
 - Wrong algorithm choice for the constraints
 - Hashmap key collisions
 - Off-by-one errors in pointer logic
 - Edge cases your code doesn't handle
 
-### 🎬 Algorithm Visualizer
+### Algorithm Visualizer
 Animated step-by-step Canvas visualizations generated for your specific problem:
 - Array / Sliding Window
 - DP Table cell-by-cell filling
 - Stack push/pop operations
 - Two-pointer movement
 
-### 🧠 Struggle Detection
+### Struggle Detection
 The extension tracks your session and adapts:
 - 3+ failed runs → *"Stuck on edge cases? Try H3 for an optimization clue."*
 - Multiple rewrites → *"Starting with pseudocode (H4) might help clarify the approach."*
