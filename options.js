@@ -20,8 +20,8 @@ saveBtn.addEventListener("click", async () => {
     showStatus("Please enter an API key.", "error");
     return;
   }
-  if (!key.startsWith("sk-ant-")) {
-    showStatus("That doesn't look like a Claude API key (should start with sk-ant-).", "error");
+  if (!key.startsWith("sk-")) {
+    showStatus("That doesn't look like a valid API key.", "error");
     return;
   }
 
