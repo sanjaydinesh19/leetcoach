@@ -14,7 +14,7 @@ toggleBtn.addEventListener("click", () => {
   toggleBtn.textContent = isHidden ? "Hide" : "Show";
 });
 
-saveBtn.addEventListener("click", async () => {
+saveBtn.addEventListener("click", () => {
   const key = keyInput.value.trim();
   if (!key) {
     showStatus("Please enter an API key.", "error");
@@ -25,39 +25,14 @@ saveBtn.addEventListener("click", async () => {
     return;
   }
 
-  saveBtn.textContent = "Verifying…";
+  saveBtn.textContent = "Saving…";
   saveBtn.disabled = true;
 
-  // Quick validation call
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 10,
-        messages: [{ role: "user", content: "hi" }],
-      }),
-    });
-
-    if (res.status === 401) {
-      showStatus("Invalid API key — check and try again.", "error");
-    } else {
-      await chrome.storage.sync.set({ apiKey: key });
-      showStatus("✓ API key saved! Open a LeetCode problem to start.", "success");
-    }
-  } catch {
-    // Network error — save anyway (may be working fine in extension context)
-    await chrome.storage.sync.set({ apiKey: key });
-    showStatus("✓ Key saved (could not verify — check your connection).", "success");
-  }
-
-  saveBtn.textContent = "Save Key";
-  saveBtn.disabled = false;
+  chrome.storage.sync.set({ apiKey: key }, () => {
+    showStatus("✓ API key saved! Open a LeetCode problem to start.", "success");
+    saveBtn.textContent = "Save Key";
+    saveBtn.disabled = false;
+  });
 });
 
 function showStatus(msg, type) {
