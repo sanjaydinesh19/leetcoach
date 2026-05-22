@@ -20,11 +20,5 @@
     "default_popup": "options.html",
     "default_title": "LeetCoach Settings"
   },
-  "options_page": "options.html",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "leetcoach@sanjaydinesh19",
-      "strict_min_version": "109.0"
-    }
-  }
+  "options_page": "options.html"
 }

@@ -200,7 +200,7 @@ Generate 6-10 meaningful steps showing the algorithm in action.`;
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   const { type, payload } = message;
 
-  chrome.storage.sync.get("apiKey", ({ apiKey }) => {
+  chrome.storage.sync.get("apiKey").then(({ apiKey }) => {
     if (!apiKey) {
       sendResponse({ error: "No API key set. Click the LeetCoach icon to add your key." });
       return;
