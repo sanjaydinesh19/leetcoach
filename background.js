@@ -140,42 +140,47 @@ TLE risk is true if time complexity is O(n²) or worse for n > 10^4, or O(n³) f
 async function handleDetectErrors(apiKey, { code, language, problemTitle, problemContent, constraints }) {
   if (!code || code.trim().length < 30) return { correct: [], edgeCases: [], errors: [] };
 
-  const system = `You are a precise algorithmic code reviewer. Your job is to give balanced, accurate feedback — strengths, edge case risks, and real bugs. CRITICAL RULE: Read every single line of code before making any claim. Never say a variable is uninitialized, missing, or wrong if it is present anywhere in the provided code. Only report errors you are 100% certain about after reading the full code. Do not hallucinate bugs. Respond ONLY with valid JSON.`;
+  const system = `You are a meticulous code reviewer. You only report bugs you can directly prove from the code. You never hallucinate issues based on patterns — only on what is literally written. Respond ONLY with valid JSON.`;
 
-  const user = `Review this ${language} solution for "${problemTitle}":
+  const user = `Review this ${language} solution for "${problemTitle}".
 
 Problem: ${problemContent}
 Constraints: ${constraints}
 
-Code:
+Code (read every line in order before forming any opinion):
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Read the ENTIRE code carefully, then respond with exactly this JSON:
+Before producing output, trace the code mentally in execution order:
+- Note every variable definition and the line it first appears on.
+- Note the actual order statements execute.
+
+Then respond with exactly this JSON:
 \`\`\`json
 {
   "correct": [
-    "one sentence describing something the user implemented correctly (algorithm choice, data structure, handling a tricky case). Max 3 items."
+    "genuine strength of the implementation — algorithm choice, tricky case handled correctly, good data structure. Max 3 items."
   ],
   "edgeCases": [
-    "one sentence describing an edge case the code may not handle (e.g. empty input, all duplicates, negative numbers, overflow). Only list if genuinely unhandled. Max 3 items."
+    "edge case that is genuinely unhandled based on what you read. Must be verifiable from the code. Max 3 items."
   ],
   "errors": [
     {
-      "description": "specific description of a real logical bug you are certain exists after reading the full code",
-      "location": "exact location in the code (e.g. 'while loop condition', 'return statement')",
-      "fix": "what to change, in one sentence"
+      "description": "bug description — must be directly provable from the code as written",
+      "location": "quote the exact line or expression that is wrong",
+      "fix": "one-sentence fix"
     }
   ]
 }
 \`\`\`
 
-Rules:
-- correct: find genuine strengths, not filler praise
-- edgeCases: only list cases that are actually unhandled given the code you read
-- errors: only include bugs you are absolutely certain about — if unsure, omit it
-- all arrays may be empty if nothing applies`;
+Strict rules — violation of these makes the review useless:
+1. Before claiming a variable is undefined or uninitialized, confirm it does NOT appear on any earlier line. If it appears anywhere before its use, do NOT report it.
+2. Before claiming lines are in the wrong order, quote both lines and state their actual positions in the code.
+3. Every entry in "errors" must be something you can quote directly from the code. If you cannot point to the exact line, omit it.
+4. "edgeCases" must reflect what the code actually does — not what a generic solution might miss.
+5. If you are not fully certain about a bug, leave it out. A false positive is more harmful than a missed bug.`;
 
   const text = await callClaude(apiKey, system, user, 900);
   return parseJSON(text);
