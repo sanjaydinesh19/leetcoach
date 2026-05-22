@@ -138,11 +138,11 @@ TLE risk is true if time complexity is O(n²) or worse for n > 10^4, or O(n³) f
 }
 
 async function handleDetectErrors(apiKey, { code, language, problemTitle, problemContent, constraints }) {
-  if (!code || code.trim().length < 30) return { errors: [], warnings: [] };
+  if (!code || code.trim().length < 30) return { correct: [], edgeCases: [], errors: [] };
 
-  const system = `You are an expert code reviewer specializing in algorithmic correctness. Find semantic bugs — logic errors, wrong algorithm choices, edge case failures. NOT syntax errors. Respond ONLY with valid JSON.`;
+  const system = `You are a precise algorithmic code reviewer. Your job is to give balanced, accurate feedback — strengths, edge case risks, and real bugs. CRITICAL RULE: Read every single line of code before making any claim. Never say a variable is uninitialized, missing, or wrong if it is present anywhere in the provided code. Only report errors you are 100% certain about after reading the full code. Do not hallucinate bugs. Respond ONLY with valid JSON.`;
 
-  const user = `Review this ${language} solution for "${problemTitle}" for semantic/logical errors:
+  const user = `Review this ${language} solution for "${problemTitle}":
 
 Problem: ${problemContent}
 Constraints: ${constraints}
@@ -152,24 +152,32 @@ Code:
 ${code}
 \`\`\`
 
-Respond with exactly this JSON:
+Read the ENTIRE code carefully, then respond with exactly this JSON:
 \`\`\`json
 {
+  "correct": [
+    "one sentence describing something the user implemented correctly (algorithm choice, data structure, handling a tricky case). Max 3 items."
+  ],
+  "edgeCases": [
+    "one sentence describing an edge case the code may not handle (e.g. empty input, all duplicates, negative numbers, overflow). Only list if genuinely unhandled. Max 3 items."
+  ],
   "errors": [
     {
-      "severity": "critical | warning",
-      "description": "specific description of the bug",
-      "location": "brief code location hint (e.g. 'inner loop condition')",
-      "fix": "what to change (1 sentence)"
+      "description": "specific description of a real logical bug you are certain exists after reading the full code",
+      "location": "exact location in the code (e.g. 'while loop condition', 'return statement')",
+      "fix": "what to change, in one sentence"
     }
-  ],
-  "warnings": ["edge case it may not handle (e.g. 'empty input', 'all negatives')"]
+  ]
 }
 \`\`\`
 
-Return at most 3 errors and 3 warnings. If code looks correct, return empty arrays.`;
+Rules:
+- correct: find genuine strengths, not filler praise
+- edgeCases: only list cases that are actually unhandled given the code you read
+- errors: only include bugs you are absolutely certain about — if unsure, omit it
+- all arrays may be empty if nothing applies`;
 
-  const text = await callClaude(apiKey, system, user, 700);
+  const text = await callClaude(apiKey, system, user, 900);
   return parseJSON(text);
 }
 

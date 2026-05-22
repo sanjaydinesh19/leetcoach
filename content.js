@@ -311,23 +311,43 @@
     const container = $("lc-analysis-errors");
     if (!container) return;
 
-    if (!data.errors?.length && !data.warnings?.length) {
-      container.innerHTML = `<div class="lc-empty">No logical errors detected.</div>`;
+    const correct = data.correct || [];
+    const edgeCases = data.edgeCases || [];
+    const errors = data.errors || [];
+
+    if (!correct.length && !edgeCases.length && !errors.length) {
+      container.innerHTML = `<div class="lc-empty">No issues found. Write some code and click Analyze.</div>`;
       return;
     }
 
     let html = "";
-    (data.errors || []).forEach(e => {
-      html += `
-        <div class="lc-error-card ${e.severity}">
-          <div class="lc-error-title">${e.description}</div>
-          <div class="lc-error-location">${e.location}</div>
-          <div class="lc-error-fix">${e.fix}</div>
-        </div>`;
-    });
-    (data.warnings || []).forEach(w => {
-      html += `<div class="lc-error-card warning"><div class="lc-error-title">Edge case: ${w}</div></div>`;
-    });
+
+    if (correct.length) {
+      html += `<div class="lc-analysis-section lc-section-green">
+        <div class="lc-analysis-section-label">What you got right</div>
+        ${correct.map(c => `<div class="lc-analysis-item">${c}</div>`).join("")}
+      </div>`;
+    }
+
+    if (edgeCases.length) {
+      html += `<div class="lc-analysis-section lc-section-yellow">
+        <div class="lc-analysis-section-label">Edge cases to consider</div>
+        ${edgeCases.map(e => `<div class="lc-analysis-item">${e}</div>`).join("")}
+      </div>`;
+    }
+
+    if (errors.length) {
+      html += `<div class="lc-analysis-section lc-section-red">
+        <div class="lc-analysis-section-label">Critical errors</div>
+        ${errors.map(e => `
+          <div class="lc-analysis-item">
+            <div class="lc-error-title">${e.description}</div>
+            <div class="lc-error-location">${e.location}</div>
+            <div class="lc-error-fix">${e.fix}</div>
+          </div>`).join("")}
+      </div>`;
+    }
+
     container.innerHTML = html;
   }
 
