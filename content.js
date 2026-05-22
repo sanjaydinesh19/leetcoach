@@ -209,25 +209,27 @@
   }
 
   function renderHintText(text) {
-    // Render fenced code blocks with a header bar and copy button
+    // Pull code blocks out first so the \n→<br> pass never touches them.
+    // textContent on a <pre> with real \n chars preserves formatting perfectly;
+    // <br> tags inside <pre> read as empty string via textContent, breaking copy.
+    const blocks = [];
+
     let html = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
       const id = "lc-cb-" + Math.random().toString(36).slice(2, 8);
       const label = lang || "code";
-      return `
-        <div class="lc-code-wrapper">
-          <div class="lc-code-header">
-            <span class="lc-code-lang">${label}</span>
-            <button class="lc-copy-btn" data-copy-target="${id}">Copy</button>
-          </div>
-          <pre class="lc-code-block" id="${id}"><code>${escapeHtml(code.trim())}</code></pre>
-        </div>`;
+      const block = `<div class="lc-code-wrapper"><div class="lc-code-header"><span class="lc-code-lang">${label}</span><button class="lc-copy-btn" data-copy-target="${id}">Copy</button></div><pre class="lc-code-block" id="${id}"><code>${escapeHtml(code.trim())}</code></pre></div>`;
+      const marker = `\x00BLOCK${blocks.length}\x00`;
+      blocks.push(block);
+      return marker;
     });
 
-    // Numbered pseudocode lines
+    // Process surrounding prose only
     html = html.replace(/^(\d+\.\s.+)$/gm, "<div class='lc-pseudo-step'>$1</div>");
-
-    // Newlines to <br> (outside pre blocks)
     html = html.replace(/\n(?!<)/g, "<br>");
+
+    // Restore code blocks with their original newlines intact
+    blocks.forEach((block, i) => { html = html.replace(`\x00BLOCK${i}\x00`, block); });
+
     return html;
   }
 
