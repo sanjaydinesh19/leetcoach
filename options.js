@@ -47,13 +47,15 @@ saveBtn.addEventListener("click", async () => {
     if (res.status === 401) {
       showStatus("Invalid API key — check and try again.", "error");
     } else {
-      await chrome.storage.sync.set({ apiKey: key });
-      showStatus("✓ API key saved! Open a LeetCode problem to start.", "success");
+      chrome.storage.sync.set({ apiKey: key }, () => {
+        showStatus("✓ API key saved! Open a LeetCode problem to start.", "success");
+      });
     }
   } catch {
     // Network error — save anyway (may be working fine in extension context)
-    await chrome.storage.sync.set({ apiKey: key });
-    showStatus("✓ Key saved (could not verify — check your connection).", "success");
+    chrome.storage.sync.set({ apiKey: key }, () => {
+      showStatus("✓ Key saved (could not verify — check your connection).", "success");
+    });
   }
 
   saveBtn.textContent = "Save Key";

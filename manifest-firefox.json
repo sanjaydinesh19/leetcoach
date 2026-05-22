@@ -1,12 +1,16 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "LeetCoach",
   "version": "1.0.0",
   "description": "AI-powered interview coaching for LeetCode — progressive hints, pattern recognition, complexity analysis, and algorithm visualizations.",
-  "permissions": ["storage"],
-  "host_permissions": ["https://leetcode.com/*", "https://api.anthropic.com/*"],
+  "permissions": [
+    "storage",
+    "https://leetcode.com/*",
+    "https://api.anthropic.com/*"
+  ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "persistent": false
   },
   "content_scripts": [
     {
@@ -16,7 +20,7 @@
       "run_at": "document_idle"
     }
   ],
-  "action": {
+  "browser_action": {
     "default_popup": "options.html",
     "default_title": "LeetCoach Settings"
   },
@@ -24,7 +28,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "leetcoach@sanjaydinesh19",
-      "strict_min_version": "109.0"
+      "strict_min_version": "57.0"
     }
   }
 }
