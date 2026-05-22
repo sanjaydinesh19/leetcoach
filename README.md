@@ -8,7 +8,6 @@ An AI-powered Chrome extension that coaches you through LeetCode problems — pr
 
 ---
 
-
 ## Features
 
 ### 5-Level Progressive Hints
@@ -19,8 +18,8 @@ Hints unlock one at a time so you're always challenged before you get help.
 | H1 | Pattern recognition — a guiding question about the technique |
 | H2 | Data structure suggestion — *why* it fits this problem |
 | H3 | Optimization clue — the key insight for efficiency |
-| H4 | Pseudocode — algorithm outline without real syntax |
-| H5 | Full implementation — commented code |
+| H4 | Pseudocode — numbered plain-English algorithm outline |
+| H5 | Full implementation — commented code with a one-click Copy button |
 
 ### Algorithm Pattern Recognition
 The moment you open a problem, LeetCoach identifies the core pattern:
@@ -31,7 +30,7 @@ The moment you open a problem, LeetCoach identifies the core pattern:
 ### Live Complexity Analysis
 As you type, it predicts:
 - Time and space complexity
-- TLE risk (`"Your O(n²) solution may fail for n=10⁵"`)
+- TLE risk (`"O(n²) may fail for n=10⁵"`)
 - Specific bottlenecks (nested loops, redundant lookups)
 
 ### Semantic Error Detection
@@ -41,18 +40,11 @@ Not syntax errors — actual reasoning mistakes:
 - Off-by-one errors in pointer logic
 - Edge cases your code doesn't handle
 
-### Algorithm Visualizer
-Animated step-by-step Canvas visualizations generated for your specific problem:
-- Array / Sliding Window
-- DP Table cell-by-cell filling
-- Stack push/pop operations
-- Two-pointer movement
-
 ### Struggle Detection
 The extension tracks your session and adapts:
-- 3+ failed runs → *"Stuck on edge cases? Try H3 for an optimization clue."*
-- Multiple rewrites → *"Starting with pseudocode (H4) might help clarify the approach."*
-- 5 min inactivity → *"Been quiet for a while. Want a data structure suggestion?"*
+- 3+ failed runs → prompts an optimization hint
+- Multiple rewrites → suggests starting from pseudocode
+- 5 min inactivity → offers a data structure suggestion
 
 ---
 
@@ -68,10 +60,10 @@ Sign up at [console.anthropic.com](https://console.anthropic.com) and create an 
 4. Select the `leetcoach` folder
 
 ### 3. Add Your API Key
-Click the 🧠 icon in the Chrome toolbar → paste your `sk-ant-...` key → Save.
+Click the **LeetCoach** icon in the Chrome toolbar → paste your `sk-ant-...` key → Save.
 
 ### 4. Start Solving
-Navigate to any LeetCode problem (e.g. `leetcode.com/problems/two-sum/`). The **🧠 LC** tab appears on the right edge of the page.
+Navigate to any LeetCode problem. The **LC** tab appears on the right edge of the page. Click it to open the coaching sidebar.
 
 ---
 
@@ -79,9 +71,8 @@ Navigate to any LeetCode problem (e.g. `leetcode.com/problems/two-sum/`). The **
 
 | Panel | What to do |
 |-------|-----------|
-| **Hints** | Click "Get Hint 1 →" and work progressively. Don't skip levels. |
-| **Analysis** | Click "Analyze My Code" after writing a solution draft. Complexity updates live as you type. |
-| **Visualize** | Click "Generate Visualization" to see the algorithm animated for your problem. |
+| **Hints** | Click "Get Hint 1" and work progressively. Don't skip levels — each hint builds on the last. |
+| **Analysis** | Click "Analyze My Code" after writing a draft. Complexity (time/space) updates automatically as you type. |
 
 The sidebar collapses to a thin tab when you don't need it.
 
@@ -117,7 +108,7 @@ content.js (injected)
                            claude-sonnet-4-6
 ```
 
-All Claude API calls go through the background service worker to avoid CORS issues. The API key is stored in `chrome.storage.sync` — local to your browser, never sent anywhere except Anthropic's API.
+All Claude API calls go through the background service worker. The API key is stored in `chrome.storage.sync` — local to your browser, never sent anywhere except Anthropic's API.
 
 ---
 
@@ -125,7 +116,6 @@ All Claude API calls go through the background service worker to avoid CORS issu
 
 - **Chrome Extension** — Manifest V3
 - **Vanilla JS** — No build step, load directly
-- **Canvas API** — Algorithm visualizations
 - **Claude Sonnet 4.6** — Pattern recognition, hints, complexity analysis, error detection
 
 ---
@@ -147,4 +137,4 @@ git clone https://github.com/sanjaydinesh19/leetcoach
 # Then load the folder in chrome://extensions
 ```
 
-To add a new Claude-powered feature, add a handler in `background.js` and call it from `content.js` via `send("YOUR_TYPE", payload)`.
+To add a new Claude-powered feature, add a handler in `background.js` and wire it from `content.js` via `send("YOUR_TYPE", payload)`.
