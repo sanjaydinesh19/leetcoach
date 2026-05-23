@@ -1,10 +1,11 @@
 # LeetCoach
 
-An AI-powered Chrome extension that coaches you through LeetCode problems — progressively, not by handing you the answer.
+An AI-powered Chrome extension that coaches you through LeetCode problems — progressively, not by handing you the answer. Solve, get coached, and save everything directly to your Notion revision tracker.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-blueviolet)
 ![Claude API](https://img.shields.io/badge/Powered%20by-Claude%20Sonnet-a78bfa)
+![Notion](https://img.shields.io/badge/Notion-Integration-black?logo=notion&logoColor=white)
 
 ---
 
@@ -42,20 +43,24 @@ Click **Analyze My Code** for structured, accurate feedback:
 | Edge cases to consider | Yellow | Inputs that may not be handled (empty array, overflow, duplicates) |
 | Critical errors | Red | Real logic bugs — with the exact line and a one-line fix |
 
-Every reported bug is grounded in a direct quote from your code. The reviewer is required to trace variable definitions in execution order before making any claim, eliminating false positives like "variable X is undefined" when X is clearly defined earlier.
-
 ### Struggle Detection
 The extension tracks your session and adapts:
 - 3+ failed runs → prompts an optimization hint
 - Multiple rewrites → suggests starting from pseudocode
 - 5 min inactivity → offers a data structure suggestion
 
+### Notion Integration
+Save solved problems directly to your Notion revision database with one click:
+- Auto-populates topic tags from the LeetCode problem page
+- Claude generates the optimal solution and study notes automatically
+- Creates a fully formatted Notion page with your code, the optimal solution, notes, cover image, and all properties (difficulty, topic, revise flag, date)
+
 ---
 
 ## Installation
 
 ### 1. Get a Claude API Key
-Sign up at [console.anthropic.com](https://console.anthropic.com) and create an API key. Free tier works.
+Sign up at [console.anthropic.com](https://console.anthropic.com) and create an API key.
 
 ### 2. Load the Extension
 1. Open Chrome and go to `chrome://extensions`
@@ -63,22 +68,52 @@ Sign up at [console.anthropic.com](https://console.anthropic.com) and create an 
 3. Click **Load unpacked**
 4. Select the `leetcoach` folder
 
-### 3. Add Your API Key
-Click the **LeetCoach** icon in the Chrome toolbar → paste your `sk-ant-...` key → Save.
+### 3. Configure Your Keys
+Click the **LeetCoach icon** in the Chrome toolbar to open the settings popup.
+
+**Claude API Key** — paste your `sk-ant-...` key and click Save Key.
+
+**Notion Integration** *(optional)* — to enable one-click saving to Notion:
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → create a new integration → copy the API key (`ntn_...`)
+2. Open your Notion database → click the `...` menu → **Connections** → add your integration
+3. Paste the API key and your Database ID into the Notion Integration card → Save
 
 ### 4. Start Solving
-Navigate to any LeetCode problem. The **LC** tab appears on the right edge of the page. Click it to open the coaching sidebar.
+Navigate to any LeetCode problem. The **LC** tab appears on the right edge of the page.
 
 ---
 
 ## How to Use
 
-| Panel | What to do |
-|-------|-----------|
-| **Hints** | Click "Get Hint 1" and work progressively. Don't skip levels — each hint builds on the last. |
-| **Analysis** | Click "Analyze My Code" after writing a draft. Complexity (time/space) updates automatically as you type. |
+### Hints Tab
+1. Click **Get Hint 1** — you'll get a guiding question about the pattern, not the answer
+2. Attempt the problem based on the hint
+3. Still stuck? Click **Get Hint 2** for a data structure suggestion
+4. Work through H3 (optimization clue) → H4 (pseudocode) → H5 (full solution) only as needed
+5. Jump to any unlocked level using the H1–H5 buttons at the top
 
-The sidebar collapses to a thin tab when you don't need it.
+> Don't skip straight to H5 — the progressive structure is the coaching.
+
+### Analysis Tab
+- **Complexity** updates automatically as you type (Time, Space, TLE risk)
+- Click **Analyze My Code** after writing a draft to get:
+  - What you got right (green)
+  - Edge cases to consider (yellow)
+  - Critical logic errors with exact line references (red)
+
+### Notion Tab
+Once you've solved a problem and want to save it for revision:
+
+1. Click the **Notion** tab in the sidebar
+2. **Topics** are auto-filled from the LeetCode tags — remove or add any
+3. Set the **Revise** flag: *Must Revise* (want to revisit) or *Not Needed* (confident)
+4. Click **Save to Notion**
+
+LeetCoach will:
+- Ask Claude to generate the optimal solution and 5–6 study notes
+- Create a Notion page with your code, the optimal solution, notes, cover image, difficulty, topics, link, and today's date — all filled in automatically
+
+The sidebar collapses to a thin **LC** tab when you don't need it.
 
 ---
 
@@ -87,11 +122,13 @@ The sidebar collapses to a thin tab when you don't need it.
 ```
 leetcoach/
 ├── manifest.json      # MV3 extension config
-├── background.js      # Service worker — all Claude API calls
+├── background.js      # Service worker — Claude API calls + Notion API
 ├── content.js         # Sidebar UI, editor monitoring, struggle detection
 ├── sidebar.css        # Dark theme sidebar styles
-├── options.html       # Settings page (API key input)
+├── options.html       # Settings popup (Claude key + Notion config)
 ├── options.js         # Options page logic
+├── assets/
+│   └── Background.jpg # Cover image used on all Notion pages
 └── icons/             # Extension icons
 ```
 
@@ -102,32 +139,31 @@ LeetCode Page
      │
      ▼
 content.js (injected)
-  ├── Parses problem DOM
-  ├── Builds & renders sidebar
+  ├── Parses problem DOM (title, difficulty, topic tags)
+  ├── Builds & renders sidebar (Hints / Analysis / Notion tabs)
   ├── Watches Monaco editor for code changes
   └── Sends messages to ──►  background.js (service worker)
-                                  │
-                                  ▼
-                           Claude API (Anthropic)
-                           claude-sonnet-4-6
+                                  ├── Claude API (hints, analysis, optimal solution)
+                                  └── Notion API (create page with full content)
 ```
 
-All Claude API calls go through the background service worker. The API key is stored in `chrome.storage.sync` — local to your browser, never sent anywhere except Anthropic's API.
+API keys are stored in `chrome.storage.sync` — local to your browser only.
 
 ---
 
 ## Tech Stack
 
-- **Chrome Extension** — Manifest V3
-- **Vanilla JS** — No build step, load directly
-- **Claude Sonnet 4.6** — Pattern recognition, hints, complexity analysis, error detection
+- **Chrome Extension** — Manifest V3, no build step
+- **Vanilla JS** — load unpacked directly
+- **Claude Sonnet 4.6** — pattern recognition, hints, complexity analysis, error detection, optimal solution generation
+- **Notion API** — automated revision tracking
 
 ---
 
 ## Privacy
 
-- Your API key is stored only in Chrome's local storage (`chrome.storage.sync`)
-- Problem content and your code are sent to Anthropic's API only when you request a hint or analysis
+- API keys are stored only in Chrome's local storage (`chrome.storage.sync`)
+- Problem content and your code are sent to Anthropic's API only when you request a hint, analysis, or Notion save
 - No data is collected or stored by this extension
 
 ---
