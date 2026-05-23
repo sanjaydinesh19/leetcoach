@@ -246,6 +246,7 @@ async function handleSaveToNotion(apiKey, notionKey, notionDbId, payload) {
     body: JSON.stringify({
       parent: { database_id: notionDbId },
       cover: { type: "external", external: { url: COVER_URL } },
+      icon: { type: "emoji", emoji: "📝" },
       properties: {
         "Question Title": { title: [{ text: { content: title } }] },
         "Difficulty Level": { select: { name: difficulty } },
