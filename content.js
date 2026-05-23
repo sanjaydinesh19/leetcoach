@@ -61,6 +61,15 @@
     return true;
   }
 
+  function getTopicsFromDOM() {
+    const selectors = ['a[href*="/tag/"]', '.topic-tag__1jni a', '[data-cy="topic-tag"]'];
+    for (const sel of selectors) {
+      const els = document.querySelectorAll(sel);
+      if (els.length > 0) return [...new Set(Array.from(els).map(el => el.textContent.trim()).filter(Boolean))];
+    }
+    return [];
+  }
+
   function getEditorCode() {
     if (window.monaco) {
       const models = window.monaco.editor.getModels();
@@ -116,6 +125,7 @@
         <div id="lc-tabs">
           <div class="lc-tab active" data-tab="hints">Hints</div>
           <div class="lc-tab" data-tab="analysis">Analysis</div>
+          <div class="lc-tab" data-tab="notion">Notion</div>
         </div>
 
         <div id="lc-content">
@@ -172,6 +182,25 @@
             <button id="lc-analyze-btn">Analyze My Code</button>
           </div>
         </div>
+
+          <!-- Notion Pane -->
+          <div class="lc-pane" id="lc-pane-notion">
+            <div class="lc-section-label">Topics</div>
+            <div id="lc-notion-topics" class="lc-notion-tags"></div>
+            <div class="lc-notion-add-topic">
+              <input type="text" id="lc-notion-topic-input" placeholder="Add topic…" />
+              <button id="lc-notion-topic-add-btn">+</button>
+            </div>
+
+            <div class="lc-section-label" style="margin-top:12px">Revise</div>
+            <select id="lc-notion-revise">
+              <option value="Must Revise">Must Revise</option>
+              <option value="Not Needed">Not Needed</option>
+            </select>
+
+            <button id="lc-notion-save-btn">Save to Notion</button>
+            <div id="lc-notion-status"></div>
+          </div>
 
         <div id="lc-status">Ready</div>
       </div>
@@ -497,6 +526,60 @@
     if (btn) { btn.textContent = "Analyze My Code"; btn.disabled = false; }
   }
 
+  // ── Notion Tab ─────────────────────────────────────────────────────────────
+
+  let notionTopics = [];
+
+  function renderNotionTopics() {
+    const container = $("lc-notion-topics");
+    if (!container) return;
+    container.innerHTML = notionTopics.map((t, i) =>
+      `<span class="lc-notion-tag">${t}<button class="lc-notion-tag-remove" data-index="${i}">×</button></span>`
+    ).join("");
+  }
+
+  function initNotionPane() {
+    notionTopics = getTopicsFromDOM();
+    if (!notionTopics.length && state.pattern?.pattern) {
+      notionTopics = [state.pattern.pattern];
+    }
+    renderNotionTopics();
+  }
+
+  async function onSaveToNotion() {
+    const btn = $("lc-notion-save-btn");
+    const statusEl = $("lc-notion-status");
+    const revise = $("lc-notion-revise")?.value || "Not Needed";
+
+    if (btn) { btn.textContent = "Saving…"; btn.disabled = true; }
+    if (statusEl) { statusEl.textContent = "Generating optimal solution…"; statusEl.className = "loading"; }
+
+    try {
+      const difficulty = capitalize(state.problem.difficulty) || "Medium";
+      await send("SAVE_TO_NOTION", {
+        title: state.problem.title,
+        difficulty,
+        topics: notionTopics,
+        link: location.href,
+        userCode: getEditorCode(),
+        language: getEditorLanguage(),
+        revise,
+        problemContent: state.problem.content,
+      });
+
+      if (statusEl) { statusEl.textContent = "✓ Saved to Notion!"; statusEl.className = "success"; }
+    } catch (e) {
+      if (statusEl) { statusEl.textContent = `Error: ${e.message}`; statusEl.className = "error"; }
+    }
+
+    if (btn) { btn.textContent = "Save to Notion"; btn.disabled = false; }
+  }
+
+  function capitalize(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   function onHintLevelClick(level) {
     if (level > state.hintsUnlocked + 1) return;
     if (level > state.currentHintLevel && !state.hintCache[level]) {
@@ -521,6 +604,7 @@
         document.querySelectorAll(".lc-pane").forEach(p => p.classList.remove("active"));
         tab.classList.add("active");
         $(`lc-pane-${tab.dataset.tab}`)?.classList.add("active");
+        if (tab.dataset.tab === "notion") initNotionPane();
       });
     });
 
@@ -530,6 +614,28 @@
 
     $("lc-next-hint-btn")?.addEventListener("click", onGetHint);
     $("lc-analyze-btn")?.addEventListener("click", onAnalyzeCode);
+    $("lc-notion-save-btn")?.addEventListener("click", onSaveToNotion);
+
+    $("lc-notion-topic-add-btn")?.addEventListener("click", () => {
+      const input = $("lc-notion-topic-input");
+      const val = input?.value.trim();
+      if (val && !notionTopics.includes(val)) {
+        notionTopics.push(val);
+        renderNotionTopics();
+      }
+      if (input) input.value = "";
+    });
+
+    $("lc-notion-topic-input")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") $("lc-notion-topic-add-btn")?.click();
+    });
+
+    $("lc-notion-topics")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".lc-notion-tag-remove");
+      if (!btn) return;
+      notionTopics.splice(parseInt(btn.dataset.index), 1);
+      renderNotionTopics();
+    });
 
     // Copy button delegation (buttons injected dynamically into hint box)
     root.addEventListener("click", (e) => {

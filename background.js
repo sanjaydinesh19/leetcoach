@@ -186,12 +186,107 @@ Strict rules — violation of these makes the review useless:
   return parseJSON(text);
 }
 
+// ── Notion Integration ───────────────────────────────────────────────────────
+
+const NOTION_API_URL = "https://api.notion.com/v1";
+const NOTION_VERSION = "2022-06-28";
+const COVER_URL = "https://raw.githubusercontent.com/sanjaydinesh19/leetcoach/main/assets/Background.jpg";
+
+async function generateNotionContent(apiKey, { title, problemContent, userCode, language }) {
+  const system = `You are an expert competitive programmer. Given a LeetCode problem and a user's solution, provide an optimal solution and concise study notes. Respond ONLY with valid JSON.`;
+
+  const user = `Problem: ${title}
+Statement: ${problemContent}
+
+User's solution (${language}):
+\`\`\`${language}
+${userCode || "(no code provided)"}
+\`\`\`
+
+Respond with exactly this JSON:
+\`\`\`json
+{
+  "optimalCode": "the optimal solution in ${language} with brief inline comments",
+  "notes": [
+    "5-6 bullet points covering: key insight, algorithm choice, time/space complexity, edge cases, and how the optimal differs from brute force"
+  ]
+}
+\`\`\``;
+
+  const text = await callClaude(apiKey, system, user, 1500);
+  return parseJSON(text);
+}
+
+async function handleSaveToNotion(apiKey, notionKey, notionDbId, payload) {
+  const { title, difficulty, topics, link, userCode, language, revise, problemContent } = payload;
+  const today = new Date().toISOString().split("T")[0];
+
+  const generated = await generateNotionContent(apiKey, { title, problemContent, userCode, language });
+
+  const blocks = [
+    { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: "My Solution" } }] } },
+    { object: "block", type: "code", code: { language, rich_text: [{ type: "text", text: { content: userCode || "" } }] } },
+    { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: "Optimal Solution" } }] } },
+    { object: "block", type: "code", code: { language, rich_text: [{ type: "text", text: { content: generated.optimalCode } }] } },
+    { object: "block", type: "heading_1", heading_1: { rich_text: [{ type: "text", text: { content: "Notes" } }] } },
+    ...generated.notes.map(note => ({
+      object: "block",
+      type: "bulleted_list_item",
+      bulleted_list_item: { rich_text: [{ type: "text", text: { content: note } }] },
+    })),
+  ];
+
+  const response = await fetch(`${NOTION_API_URL}/pages`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${notionKey}`,
+      "Notion-Version": NOTION_VERSION,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      parent: { database_id: notionDbId },
+      cover: { type: "external", external: { url: COVER_URL } },
+      properties: {
+        "Question Title": { title: [{ text: { content: title } }] },
+        "Difficulty Level": { select: { name: difficulty } },
+        "Topic": { multi_select: topics.map(t => ({ name: t })) },
+        "Link": { url: link },
+        "Revise": { select: { name: revise } },
+        "Last Solved Date": { date: { start: today } },
+      },
+      children: blocks,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Notion API error ${response.status}`);
+  }
+
+  return await response.json();
+}
+
 // ── Message Router ───────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   const { type, payload } = message;
 
-  chrome.storage.sync.get("apiKey").then(({ apiKey }) => {
+  chrome.storage.sync.get(["apiKey", "notionKey", "notionDbId"]).then(({ apiKey, notionKey, notionDbId }) => {
+    if (type === "SAVE_TO_NOTION") {
+      if (!notionKey || !notionDbId) {
+        sendResponse({ error: "Notion not configured. Click the LeetCoach icon to add your Notion key." });
+        return;
+      }
+      if (!apiKey) {
+        sendResponse({ error: "No Claude API key set. Click the LeetCoach icon to add your key." });
+        return;
+      }
+      handleSaveToNotion(apiKey, notionKey, notionDbId, payload)
+        .then((data) => sendResponse({ data }))
+        .catch((err) => sendResponse({ error: err.message }));
+      return;
+    }
+
     if (!apiKey) {
       sendResponse({ error: "No API key set. Click the LeetCoach icon to add your key." });
       return;

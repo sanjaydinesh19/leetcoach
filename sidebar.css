@@ -505,3 +505,117 @@
 
 #lc-status.error { color: #e87272; }
 #lc-status.success { color: #4ade80; }
+
+/* ── Notion Pane ──────────────────────────────────────────────────────────── */
+
+#lc-pane-notion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lc-notion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+
+.lc-notion-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(109, 92, 206, 0.12);
+  border: 1px solid rgba(109, 92, 206, 0.25);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  color: #9d8df1;
+}
+
+.lc-notion-tag-remove {
+  background: none;
+  border: none;
+  color: #5a5a78;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+
+.lc-notion-tag-remove:hover { color: #e87272; }
+
+.lc-notion-add-topic {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.lc-notion-add-topic input {
+  flex: 1;
+  background: #111118;
+  border: 1px solid #1e1e2a;
+  border-radius: 5px;
+  color: #c8d0de;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.lc-notion-add-topic input:focus { border-color: #6d5cce; }
+
+#lc-notion-topic-add-btn {
+  background: #1a1a2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 5px;
+  color: #9d8df1;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 10px;
+}
+
+#lc-notion-topic-add-btn:hover { background: #22223a; }
+
+#lc-notion-revise {
+  width: 100%;
+  background: #111118;
+  border: 1px solid #1e1e2a;
+  border-radius: 5px;
+  color: #c8d0de;
+  font-size: 12px;
+  padding: 7px 8px;
+  outline: none;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+#lc-notion-revise:focus { border-color: #6d5cce; }
+
+#lc-notion-save-btn {
+  width: 100%;
+  padding: 10px;
+  background: #6d5cce;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s;
+  margin-bottom: 10px;
+}
+
+#lc-notion-save-btn:hover:not(:disabled) { background: #7c6aed; }
+#lc-notion-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+#lc-notion-status {
+  font-size: 12px;
+  min-height: 16px;
+  text-align: center;
+}
+
+#lc-notion-status.success { color: #4ade80; }
+#lc-notion-status.error   { color: #e87272; }
+#lc-notion-status.loading { color: #9d8df1; }

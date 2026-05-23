@@ -184,6 +184,24 @@
   </div>
 
   <div class="card">
+    <h2>Notion Integration</h2>
+    <label for="notion-key">Notion API Key</label>
+    <input type="password" id="notion-key" placeholder="ntn_…" autocomplete="off" />
+    <div style="margin-top: 10px;">
+      <label for="notion-db">Database ID</label>
+      <input type="text" id="notion-db" placeholder="20ab3d5e…" autocomplete="off" />
+    </div>
+    <div class="input-row">
+      <button class="btn-secondary" id="toggle-notion-key">Show</button>
+      <button class="btn-primary" id="save-notion-btn">Save</button>
+    </div>
+    <div id="notion-status-msg"></div>
+    <div class="info">
+      Create an integration at <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> and share your database with it.
+    </div>
+  </div>
+
+  <div class="card">
     <h2>API Configuration</h2>
     <label for="api-key">Claude API Key</label>
     <input type="password" id="api-key" placeholder="sk-ant-api03-…" autocomplete="off" />
